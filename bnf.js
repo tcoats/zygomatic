@@ -4,7 +4,7 @@ var EOF, escape, parse, stringify;
 EOF = -1;
 
 parse = function(input) {
-  var eat, error, escaped, expression, expressions, grammar, isChar, line, linePos, nonterminal, peek, pos, production, term, terminal, terminal_text, text, ws;
+  var eat, error, escaped, expression, expressions, grammar, id, isChar, line, linePos, nonterminal, peek, pos, production, term, terminal, terminal_text, text, ws;
   pos = 0;
   line = 1;
   linePos = 0;
@@ -81,6 +81,19 @@ parse = function(input) {
     }
     return ret;
   };
+  id = function() {
+    var ch, ret;
+    ret = '';
+    ch = void 0;
+    while (isChar()) {
+      if (peek() === '\\') {
+        ret += escaped();
+      } else {
+        ret += eat();
+      }
+    }
+    return ret;
+  };
   terminal_text = function() {
     var ch, ret;
     ret = '';
@@ -108,7 +121,7 @@ parse = function(input) {
   nonterminal = function() {
     var res;
     eat('<');
-    res = text();
+    res = id();
     eat('>');
     return {
       type: 'nonterminal',
@@ -149,8 +162,6 @@ parse = function(input) {
     var lhs, rhs;
     lhs = nonterminal();
     ws();
-    eat(':');
-    eat(':');
     eat('=');
     ws();
     rhs = expressions();
@@ -184,17 +195,18 @@ escape = function(text) {
 stringify = function(node) {
   switch (node.type) {
     case 'terminal':
-      return '"' + escape(node.text) + '"';
+      return "\"" + (escape(node.text)) + "\"";
     case 'nonterminal':
-      return '<' + escape(node.text) + '>';
+      return escape(node.text);
     case 'expression':
       return node.terms.map(stringify).join(' ');
     case 'production':
-      return stringify(node.lhs) + ' ::= ' + node.rhs.map(stringify).join(' | ') + ';';
+      return (stringify(node.lhs)) + " = " + (node.rhs.map(stringify).join(' | ')) + ";";
     case 'grammar':
-      return node.productions.map(stringify).join('\n') + '\n';
+      return (node.productions.map(stringify).join('\n')) + "\n";
+    default:
+      throw new Error('Unknown node type: ' + node.type);
   }
-  throw new Error('Unknown node type: ' + node.type);
 };
 
 module.exports = {

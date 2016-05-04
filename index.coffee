@@ -1,13 +1,13 @@
 bnf = require './bnf'
 
 text = """
-<list>  ::=  "<" <items> ">"               ;
-<items> ::=  <items> " " <item> | <item>   ;
-<item>  ::=  "foo" | "bar" | "baz"         ;
+<list>  = "<" <items> ">";
+<items> = <items> " " <item> | <item>;
+<item> = "foo" | "bar" | "baz";
 """
 
 ast = bnf.parse text
-console.log ast
+console.log bnf.stringify ast
 
 
 # symbols =

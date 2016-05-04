@@ -76,6 +76,17 @@ parse = (input) ->
         ret += eat()
     ret
 
+  # <id> ::= <idchar> <id> : <empty>;
+  id = ->
+    ret = ''
+    ch = undefined
+    while isChar()
+      if peek() == '\\'
+        ret += escaped()
+      else
+        ret += eat()
+    ret
+
   # <terminal_text> ::= <terminal_char> <terminal_text> | <empty>;
   # <terminal_char> ::= <char> | "<" | ">";
   terminal_text = ->
@@ -102,7 +113,7 @@ parse = (input) ->
   # <nonterminal> ::= "<" <text> ">";
   nonterminal = ->
     eat '<'
-    res = text()
+    res = id()
     eat '>'
     {
       type: 'nonterminal'
@@ -138,8 +149,6 @@ parse = (input) ->
   production = ->
     lhs = nonterminal()
     ws()
-    eat ':'
-    eat ':'
     eat '='
     ws()
     rhs = expressions()
@@ -175,17 +184,17 @@ escape = (text) ->
 stringify = (node) ->
   switch node.type
     when 'terminal'
-      return '"' + escape(node.text) + '"'
+      "\"#{escape(node.text)}\""
     when 'nonterminal'
-      return '<' + escape(node.text) + '>'
+      escape(node.text)
     when 'expression'
-      return node.terms.map(stringify).join(' ')
+      node.terms.map(stringify).join(' ')
     when 'production'
-      return stringify(node.lhs) + ' ::= ' + node.rhs.map(stringify).join(' | ') + ';'
+      "#{stringify(node.lhs)} = #{node.rhs.map(stringify).join(' | ')};"
     when 'grammar'
-      return node.productions.map(stringify).join('\n') + '\n'
-  throw new Error('Unknown node type: ' + node.type)
-  return
+      "#{node.productions.map(stringify).join('\n')}\n"
+    else
+      throw new Error 'Unknown node type: ' + node.type
 
 module.exports =
   parse: parse
