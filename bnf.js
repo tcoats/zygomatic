@@ -4,7 +4,7 @@ var EOF, escape, parse, stringify;
 EOF = -1;
 
 parse = function(input) {
-  var eat, error, escaped, expression, expressions, grammar, id, isChar, line, linePos, nonterminal, peek, pos, production, term, terminal, terminal_text, text, ws;
+  var eat, error, escaped, expression, expressions, grammar, id, isChar, isIdChar, line, linePos, nonterminal, peek, pos, production, term, terminal, terminal_text, ws;
   pos = 0;
   line = 1;
   linePos = 0;
@@ -66,26 +66,18 @@ parse = function(input) {
   isChar = function() {
     var ch;
     ch = peek();
-    return ch !== EOF && (/[a-zA-Z0-9\-_|:=; \/\(\)]/.test(ch) || ch === '\\');
+    return ch !== EOF && (/[a-zA-Z0-9\-_|:=; \/\(\)<>]/.test(ch) || ch === '\\');
   };
-  text = function() {
-    var ch, ret;
-    ret = '';
-    ch = void 0;
-    while (isChar()) {
-      if (peek() === '\\') {
-        ret += escaped();
-      } else {
-        ret += eat();
-      }
-    }
-    return ret;
+  isIdChar = function() {
+    var ch;
+    ch = peek();
+    return ch !== EOF && (/[a-zA-Z_]/.test(ch));
   };
   id = function() {
     var ch, ret;
     ret = '';
     ch = void 0;
-    while (isChar()) {
+    while (isIdChar()) {
       if (peek() === '\\') {
         ret += escaped();
       } else {
@@ -98,7 +90,7 @@ parse = function(input) {
     var ch, ret;
     ret = '';
     ch = peek();
-    while (isChar() || ch === '<' || ch === '>') {
+    while (isChar()) {
       if (ch === '\\') {
         ret += escaped();
       } else {
@@ -120,16 +112,14 @@ parse = function(input) {
   };
   nonterminal = function() {
     var res;
-    eat('<');
     res = id();
-    eat('>');
     return {
       type: 'nonterminal',
       text: res
     };
   };
   term = function() {
-    if (peek() === '<') {
+    if (isIdChar(peek())) {
       return nonterminal();
     } else {
       return terminal();
@@ -139,7 +129,7 @@ parse = function(input) {
     var res;
     res = [term()];
     ws();
-    while ('<"'.indexOf(peek()) >= 0) {
+    while (isIdChar(peek()) || peek() === '"') {
       res.push(term());
       ws();
     }
@@ -176,7 +166,7 @@ parse = function(input) {
     var res;
     res = [production()];
     ws();
-    while (peek() === '<') {
+    while (isIdChar(peek())) {
       res.push(production());
       ws();
     }

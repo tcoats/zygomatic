@@ -3,7 +3,7 @@ var ast, bnf, text;
 
 bnf = require('./bnf');
 
-text = "<list>  = \"<\" <items> \">\";\n<items> = <items> \" \" <item> | <item>;\n<item> = \"foo\" | \"bar\" | \"baz\";";
+text = "list = \"<\" items \">\";\nitems = items \" \" item | item;\nitem = \"foo\" | \"bar\" | \"baz\";";
 
 ast = bnf.parse(text);
 
