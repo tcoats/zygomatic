@@ -1,11 +1,14 @@
 bnf = require './bnf'
+gen = require './gen'
 
 text = """
 list = "<" items ">";
 items = items " " item | item;
-item = "foo" | "bar" | "baz";
+item = "a" | "b" | "c";
 """
 
-ast = bnf.parse text
-console.log bnf.stringify ast
+input1 = '<a>'
 
+grammar = bnf.parse text
+parser = gen grammar, 'list'
+console.log parser input1

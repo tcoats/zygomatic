@@ -1,5 +1,5 @@
 module.exports =
-  stringify: (ast) ->
+  stringify: (grammar) ->
     escape = (text) ->
       text
         .replace /\\/g, '\\\\'
@@ -21,7 +21,7 @@ module.exports =
       res = for term, exp of e
         "#{term} = #{expressions exp}"
       res.join '\n'
-    production ast
+    production grammar
   parse: (input) ->
     EOF = -1
     pos = 0
