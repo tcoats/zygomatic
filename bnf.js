@@ -33,7 +33,7 @@ module.exports = {
         }
         return results;
       })();
-      return (res.join(' | ')) + ";";
+      return (res.join(', ')) + ";";
     };
     production = function(e) {
       var exp, res, term;
@@ -42,7 +42,7 @@ module.exports = {
         results = [];
         for (term in e) {
           exp = e[term];
-          results.push(term + " = " + (expressions(exp)));
+          results.push(term + " -> " + (expressions(exp)));
         }
         return results;
       })();
@@ -185,8 +185,8 @@ module.exports = {
     expressions = function() {
       var res;
       res = [expression()];
-      while (peek() === '|') {
-        eat('|');
+      while (peek() === ',') {
+        eat(',');
         ws();
         res.push(expression());
       }
@@ -196,7 +196,8 @@ module.exports = {
       var lhs, rhs;
       lhs = nonterminal();
       ws();
-      eat('=');
+      eat('-');
+      eat('>');
       ws();
       rhs = expressions();
       eat(';');

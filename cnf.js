@@ -57,11 +57,9 @@ module.exports = {
     return production(grammar);
   },
   convert: function(root, grammar) {
-    var cnf, i, index, j, k, key, l, len, len1, len2, len3, len4, m, n, o, ref, ref1, replace, replacementrule, rule, rules, term;
+    var cnf, hasroot, i, index, j, k, key, l, len, len1, len2, len3, m, n, ref, replace, replacementrule, rule, rules, term, visitterms;
     cnf = deep(grammar);
-    index = 0;
-    cnf["$" + root] = deep(cnf[root]);
-    replace = function(source, target) {
+    visitterms = function(fn) {
       var key, results, rule, rules, term;
       results = [];
       for (key in cnf) {
@@ -76,11 +74,7 @@ module.exports = {
               results2 = [];
               for (k = 0, len1 = rule.length; k < len1; k++) {
                 term = rule[k];
-                if ((term.nt != null) && term.nt === source) {
-                  results2.push(term.nt = target);
-                } else {
-                  results2.push(void 0);
-                }
+                results2.push(fn(term));
               }
               return results2;
             })());
@@ -90,21 +84,31 @@ module.exports = {
       }
       return results;
     };
-    ref = cnf["$" + root];
-    for (j = 0, len = ref.length; j < len; j++) {
-      rule = ref[j];
-      rule.push({
-        nt: '$'
+    replace = function(source, target) {
+      return visitterms(function(term) {
+        if ((term.nt != null) && term.nt === source) {
+          return term.nt = target;
+        }
       });
+    };
+    index = 0;
+    hasroot = false;
+    visitterms(function(term) {
+      if ((term.nt != null) && term.nt === root) {
+        return hasroot = true;
+      }
+    });
+    if (hasroot) {
+      cnf["$" + root] = deep(cnf[root]);
+      replace(root, "$" + root);
     }
-    replace(root, "$" + root);
     for (key in cnf) {
       rules = cnf[key];
-      for (k = 0, len1 = rules.length; k < len1; k++) {
-        rule = rules[k];
+      for (j = 0, len = rules.length; j < len; j++) {
+        rule = rules[j];
         if (rule.length > 1) {
-          for (l = 0, len2 = rule.length; l < len2; l++) {
-            term = rule[l];
+          for (k = 0, len1 = rule.length; k < len1; k++) {
+            term = rule[k];
             if (term.t != null) {
               cnf["Lone" + index] = [
                 [
@@ -123,8 +127,8 @@ module.exports = {
     }
     for (key in cnf) {
       rules = cnf[key];
-      for (m = 0, len3 = rules.length; m < len3; m++) {
-        rule = rules[m];
+      for (l = 0, len2 = rules.length; l < len2; l++) {
+        rule = rules[l];
         if (rule.length > 2) {
           replacementrule = [
             rule[0], {
@@ -132,7 +136,7 @@ module.exports = {
             }
           ];
           index++;
-          for (i = n = 1, ref1 = rule.length - 2; 1 <= ref1 ? n < ref1 : n > ref1; i = 1 <= ref1 ? ++n : --n) {
+          for (i = m = 1, ref = rule.length - 2; 1 <= ref ? m < ref : m > ref; i = 1 <= ref ? ++m : --m) {
             cnf["Simple" + (index - 1)] = [
               [
                 rule[i], {
@@ -146,8 +150,8 @@ module.exports = {
           while (rule.length > 0) {
             rule.pop();
           }
-          for (o = 0, len4 = replacementrule.length; o < len4; o++) {
-            term = replacementrule[o];
+          for (n = 0, len3 = replacementrule.length; n < len3; n++) {
+            term = replacementrule[n];
             rule.push(term);
           }
         }

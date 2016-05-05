@@ -16,12 +16,13 @@ module.exports =
     expressions = (e) ->
       res = for exp in e
         expression exp
-      "#{res.join ' | '};"
+      "#{res.join ', '};"
     production = (e) ->
       res = for term, exp of e
-        "#{term} = #{expressions exp}"
+        "#{term} -> #{expressions exp}"
       res.join '\n'
     production grammar
+
   parse: (input) ->
     EOF = -1
     pos = 0
@@ -43,9 +44,9 @@ module.exports =
       linePos++
       ch
 
-    # <ws> ::= <space> <ws> | <empty>;
-    # <space> ::= " " | "\n" | "\t";
-    # <empty> ::= "";
+    # ws -> space ws, empty;
+    # space -> " ", "\n", "\t";
+    # empty -> "";
     ws = ->
       ret = ''
       ch = undefined
@@ -56,7 +57,7 @@ module.exports =
         ret += eat()
       ret
 
-    # <escaped> ::= "\\\"" | "\\n" | "\\t" | "\\\\";
+    # escaped> -> "\\\"", "\\n", "\\t", "\\\\";
     escaped = ->
       eat '\\'
       ch = peek()
@@ -76,31 +77,31 @@ module.exports =
         else
           error 'Invalid escape sequence: \\' + ch
 
-    # char = character | escaped;
-    # character = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k"
-    #            | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v"
-    #            | "w" | "x" | "y" | "z"
-    #            | "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K"
-    #            | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V"
-    #            | "W" | "X" | "Y" | "Z"
-    #            | "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "0"
-    #            |  "-" | "_" | "|" | ":" | "=" | ";" | " " | "<" | ">";
+    # char -> character, escaped;
+    # character -> "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"
+    #           , "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v"
+    #           , "w", "x", "y", "z"
+    #           , "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"
+    #           , "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V"
+    #           , "W", "X", "Y", "Z"
+    #           , "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"
+    #           ,  "-", "_", "|", ":", "=", ";", " ", "<", ">";
     isChar = ->
       ch = peek()
       ch != EOF and (/[a-zA-Z0-9\-_|:=; \/\(\)<>]/.test(ch) or ch == '\\')
 
-    # idchar = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k"
-    #            | "l" | "m" | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v"
-    #            | "w" | "x" | "y" | "z"
-    #            | "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K"
-    #            | "L" | "M" | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V"
-    #            | "W" | "X" | "Y" | "Z"
-    #            | "_";
+    # idchar -> "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"
+    #           , "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v"
+    #           , "w", "x", "y", "z"
+    #           , "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"
+    #           , "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V"
+    #           , "W", "X", "Y", "Z"
+    #           , "_";
     isIdChar = ->
       ch = peek()
       ch != EOF and (/[a-zA-Z_]/.test(ch))
 
-    # id = idchar id : empty;
+    # id -> idchar id, empty;
     id = ->
       ret = ''
       ch = undefined
@@ -111,8 +112,8 @@ module.exports =
           ret += eat()
       ret
 
-    # terminal_text ::= terminal_char terminal_text | empty;
-    # terminal_char ::= char | "<" | ">";
+    # terminal_text -> terminal_char terminal_text, empty;
+    # terminal_char -> char, "<", ">";
     terminal_text = ->
       ret = ''
       ch = peek()
@@ -124,23 +125,23 @@ module.exports =
         ch = peek()
       ret
 
-    # terminal ::= "\"" terminal_text "\"";
+    # terminal -> "\"" terminal_text "\"";
     terminal = ->
       eat '"'
       res = terminal_text()
       eat '"'
       t: res
 
-    # nonterminal = "<" text ">";
+    # nonterminal -> id;
     nonterminal = ->
       res = id()
       nt: res
 
-    # term = terminal | nonterminal;
+    # term -> terminal, nonterminal;
     term = ->
       if isIdChar peek() then nonterminal() else terminal()
 
-    # expression = term ws expression | term ws;
+    # expression -> term ws expression, term ws;
     expression = ->
       res = [term()]
       ws()
@@ -149,26 +150,27 @@ module.exports =
         ws()
       res
 
-    # expressions = expression "|" ws expressions | expression;
+    # expressions -> expression "," ws expressions, expression;
     expressions = ->
       res = [expression()]
-      while peek() == '|'
-        eat '|'
+      while peek() == ','
+        eat ','
         ws()
         res.push expression()
       res
 
-    # production = nonterminal ws "::=" ws expressions ";";
+    # production -> nonterminal ws "->" ws expressions ";";
     production = ->
       lhs = nonterminal()
       ws()
-      eat '='
+      eat '-'
+      eat '>'
       ws()
       rhs = expressions()
       eat ';'
       [lhs.nt, rhs]
 
-    # grammar = production ws grammar | production ws;
+    # grammar -> production ws grammar, production ws;
     grammar = ->
       res = {}
       r = production()

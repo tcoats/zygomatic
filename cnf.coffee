@@ -24,22 +24,30 @@ module.exports =
         "#{term} -> #{expressions exp}"
       res.join '\n'
     production grammar
+
   convert: (root, grammar) ->
     cnf = deep grammar
 
-    index = 0
-
-    cnf["$#{root}"] = deep cnf[root]
-
-    replace = (source, target) ->
+    visitterms = (fn) ->
       for key, rules of cnf
         for rule in rules
           for term in rule
-            term.nt = target if term.nt? and term.nt is source
+            fn term
 
-    # replace all start symboles from right hand side
-    rule.push nt: '$' for rule in cnf["$#{root}"]
-    replace root, "$#{root}"
+    replace = (source, target) ->
+      visitterms (term) ->
+        term.nt = target if term.nt? and term.nt is source
+
+    index = 0
+
+    # replace all start symbols from right hand side
+    hasroot = no
+    visitterms (term) ->
+      if term.nt? and term.nt is root
+        hasroot = yes
+    if hasroot
+      cnf["$#{root}"] = deep cnf[root]
+      replace root, "$#{root}"
 
     # replace lone terminators with non terminators
     for key, rules of cnf
