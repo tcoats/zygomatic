@@ -24,7 +24,7 @@ module.exports =
         "#{term} -> #{expressions exp}"
       res.join '\n'
     production grammar
-  convert: (grammar, root) ->
+  convert: (root, grammar) ->
     cnf = deep grammar
 
     index = 0

@@ -1,11 +1,11 @@
 bnf = require './bnf'
 cnf = require './cnf'
+cyk = require './cyk'
 
-grammar = bnf.parse """
+parser = cyk.generate cnf.convert 'list', bnf.parse """
 list = "<" items ">";
 items = items " " item | item;
 item = "a" | "b" | "c";
 """
-grammar = cnf.convert grammar, 'list'
 console.log '-----------------------------'
-console.log cnf.stringify grammar
+console.log parser '<a>'

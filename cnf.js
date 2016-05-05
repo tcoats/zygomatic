@@ -56,7 +56,7 @@ module.exports = {
     };
     return production(grammar);
   },
-  convert: function(grammar, root) {
+  convert: function(root, grammar) {
     var cnf, i, index, j, k, key, l, len, len1, len2, len3, len4, m, n, o, ref, ref1, replace, replacementrule, rule, rules, term;
     cnf = deep(grammar);
     index = 0;
