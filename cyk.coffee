@@ -10,21 +10,21 @@ module.exports =
     hash
     grammar = hash
 
-    makekey = (obj) ->
+    tokentokey = (obj) ->
       obj = [obj] if typeof obj is 'string'
       JSON.stringify obj
 
-    create2dArray = (dim) ->
+    createarray = (dim) ->
       for i in [0...dim]
         for j in [0...dim]
           []
 
     (input) ->
       input = input.split ''
-      result = create2dArray input.length + 1
+      result = createarray input.length + 1
       for right in [1...input.length + 1]
         token = input[right - 1]
-        terminals = grammar[makekey token]
+        terminals = grammar[tokentokey token]
         for r of terminals
           rule = terminals[r]
           result[right - 1][right].push rule: rule, token: token
@@ -33,7 +33,7 @@ module.exports =
           for mid in [left + 1...right]
             for leftindex, leftchild of result[left][mid]
               for rightindex, rightchild of result[mid][right]
-                rls = grammar[makekey [leftchild['rule'], rightchild['rule']]]
+                rls = grammar[tokentokey [leftchild['rule'], rightchild['rule']]]
                 continue unless rls?
                 for r of rls
                   result[left][right].push

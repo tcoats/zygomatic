@@ -7,7 +7,7 @@ cnf = require('./cnf');
 
 cyk = require('./cyk');
 
-bnfformat = "list -> \"<\" items \">\";\nitems -> items \" \" item, item;\nitem -> \"a\", \"b\", \"c\";";
+bnfformat = "S -> A \"b\";\nA -> A \"a\", \"a\";";
 
 bnfgrammar = bnf.parse(bnfformat);
 
@@ -17,8 +17,6 @@ parser = cyk.generate(cnfgrammar);
 
 console.log('-----------------------------');
 
-console.log(bnf.stringify(bnfgrammar));
-
 console.log(cnf.stringify(cnfgrammar));
 
-console.log(JSON.stringify(parser('<a>'), null, 2));
+console.log(JSON.stringify(parser('ab'), null, 2));

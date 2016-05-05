@@ -35,16 +35,13 @@ module.exports =
             fn term
 
     replace = (source, target) ->
-      visitterms (term) ->
-        term.nt = target if term.nt? and term.nt is source
+      visitterms (term) -> term.nt = target if term.nt? and term.nt is source
 
     index = 0
 
     # replace all start symbols from right hand side
     hasroot = no
-    visitterms (term) ->
-      if term.nt? and term.nt is root
-        hasroot = yes
+    visitterms (term) -> hasroot = yes if term.nt? and term.nt is root
     if hasroot
       cnf["$#{root}"] = deep cnf[root]
       replace root, "$#{root}"
